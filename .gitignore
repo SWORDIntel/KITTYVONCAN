@@ -1,0 +1,49 @@
+# KITTYVONCAN .gitignore
+
+# Backup files
+*.backup
+*.bak
+*~
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# User-specific files
+.DS_Store
+Thumbs.db
+
+# Development files
+*.log
+*.swp
+*.swo
+
+# Package manager files
+node_modules/
+*.lock
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# System files
+.directory
+
+# Test outputs
+test_output/
+validation_results/
+
+# Font cache
+.fontconfig/
+
+# Local configuration overrides
+local_config/
+custom_themes/
+
+# Distribution files
+*.tar.gz
+*.zip
+dist/
+build/
