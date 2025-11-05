@@ -27,6 +27,7 @@ BACKUP_ONLY=false
 RESTORE_MODE=false
 FORCE_INSTALL=false
 SKIP_DEPS=false
+INSTALL_ZSH_AUTOSUGGESTIONS=false
 
 # Print functions
 print_header() {
@@ -76,6 +77,7 @@ OPTIONS:
     --force             Force installation even if kitty not found
     --skip-deps         Skip dependency installation
     --purge             Remove all KITTYVONCAN files and restore original
+    --with-zsh-autosuggestions Install zsh-autosuggestions plugin
 
 EXAMPLES:
     ./install.sh                    # Full installation
@@ -126,6 +128,10 @@ parse_args() {
             --purge)
                 purge_installation
                 exit 0
+                ;;
+            --with-zsh-autosuggestions)
+                INSTALL_ZSH_AUTOSUGGESTIONS=true
+                shift
                 ;;
             *)
                 print_error "Unknown option: $1"
@@ -287,6 +293,45 @@ install_fonts() {
     print_success "JetBrains Mono font installed"
 }
 
+# Install zsh-autosuggestions plugin
+install_zsh_autosuggestions() {
+    print_step "Installing zsh-autosuggestions..."
+
+    if [[ "$DRY_RUN" == "true" ]]; then
+        print_info "Would install zsh-autosuggestions"
+        return 0
+    fi
+
+    if ! command -v zsh &> /dev/null; then
+        print_warning "zsh not found. Skipping zsh-autosuggestions installation."
+        return 0
+    fi
+
+    local ZSH_AUTOSUGGEST_DIR="$HOME/.zsh/zsh-autosuggestions"
+    local ZSHRC_FILE="$HOME/.zshrc"
+
+    if [[ -d "$ZSH_AUTOSUGGEST_DIR" ]]; then
+        print_success "zsh-autosuggestions already installed."
+    else
+        if ! command -v git &> /dev/null; then
+            print_warning "git not found. Cannot install zsh-autosuggestions."
+            return 1
+        fi
+        print_info "Cloning zsh-autosuggestions repository..."
+        git clone https://github.com/zsh-users/zsh-autosuggestions "$ZSH_AUTOSUGGEST_DIR"
+        print_success "zsh-autosuggestions repository cloned."
+    fi
+
+    local source_line="source $ZSH_AUTOSUGGEST_DIR/zsh-autosuggestions.zsh"
+    if grep -qF -- "$source_line" "$ZSHRC_FILE" 2>/dev/null; then
+        print_success "zsh-autosuggestions already configured in .zshrc."
+    else
+        print_info "Adding zsh-autosuggestions to .zshrc..."
+        echo -e "\n# zsh-autosuggestions\n$source_line" >> "$ZSHRC_FILE"
+        print_success "zsh-autosuggestions configured in .zshrc."
+    fi
+}
+
 # Install configuration files
 install_config() {
     print_step "Installing configuration files..."
@@ -426,6 +471,22 @@ validate_installation() {
     #     fi
     # fi
 
+    if [[ "$INSTALL_ZSH_AUTOSUGGESTIONS" == "true" ]]; then
+        local ZSH_AUTOSUGGEST_DIR="$HOME/.zsh/zsh-autosuggestions"
+        local ZSHRC_FILE="$HOME/.zshrc"
+        local source_line="source $ZSH_AUTOSUGGEST_DIR/zsh-autosuggestions.zsh"
+
+        if [[ ! -d "$ZSH_AUTOSUGGEST_DIR" ]]; then
+            print_error "zsh-autosuggestions directory not found"
+            ((errors++))
+        fi
+
+        if ! grep -qF -- "$source_line" "$ZSHRC_FILE" 2>/dev/null; then
+            print_error "zsh-autosuggestions not configured in .zshrc"
+            ((errors++))
+        fi
+    fi
+
     if [[ $errors -eq 0 ]]; then
         print_success "Installation validation passed"
         return 0
@@ -497,6 +558,10 @@ main() {
     fi
 
     install_config
+
+    if [[ "$INSTALL_ZSH_AUTOSUGGESTIONS" == "true" ]]; then
+        install_zsh_autosuggestions
+    fi
 
     if [[ "$DRY_RUN" == "false" ]]; then
         validate_installation
