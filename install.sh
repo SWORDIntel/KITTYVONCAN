@@ -242,6 +242,11 @@ backup_config() {
         print_success "Backed up themes directory"
     fi
 
+    if [[ -d "$KITTYVONCAN_DIR" ]]; then
+        cp -r "$KITTYVONCAN_DIR" "$BACKUP_DIR/"
+        print_success "Backed up kittyvoncan directory"
+    fi
+
     echo "$BACKUP_DIR" > "$KITTY_CONFIG_DIR/.kittyvoncan_last_backup"
     print_success "Backup created at: $BACKUP_DIR"
 }
@@ -344,6 +349,8 @@ install_config() {
     # Create directories
     mkdir -p "$KITTY_CONFIG_DIR"/{scripts,themes}
     mkdir -p "$KITTYVONCAN_DIR"
+    local session_dir="$KITTYVONCAN_DIR/sessions"
+    mkdir -p "$session_dir"
 
     # Copy main configuration
     cp "$SCRIPT_DIR/config/kitty.conf" "$KITTY_CONFIG_DIR/"
@@ -357,6 +364,10 @@ install_config() {
     # Copy themes
     cp -r "$SCRIPT_DIR/themes/"* "$KITTY_CONFIG_DIR/themes/"
     print_success "Installed themes"
+
+    # Copy session templates
+    cp -r "$SCRIPT_DIR/config/sessions/"* "$session_dir/"
+    print_success "Installed session templates"
 
     # Create custom configuration file
     if [[ ! -f "$KITTYVONCAN_DIR/custom.conf" ]]; then
@@ -414,6 +425,12 @@ restore_backup() {
         print_success "Restored themes"
     fi
 
+    if [[ -d "$last_backup/kittyvoncan" ]]; then
+        rm -rf "$KITTYVONCAN_DIR"
+        cp -r "$last_backup/kittyvoncan" "$KITTY_CONFIG_DIR/"
+        print_success "Restored kittyvoncan directory"
+    fi
+
     print_success "Configuration restored from backup"
 }
 
@@ -463,6 +480,12 @@ validate_installation() {
         ((errors++))
     fi
 
+    local session_file="$KITTYVONCAN_DIR/sessions/fabric_dashboard.session"
+    if [[ ! -f "$session_file" ]]; then
+        print_error "Fabric dashboard session file not found"
+        ((errors++))
+    fi
+
     # Test kitty configuration
     # if command -v kitty &> /dev/null; then
     #     if ! kitty --config="$KITTY_CONFIG_DIR/kitty.conf" --debug-config 2>/dev/null; then
@@ -506,11 +529,13 @@ print_completion() {
     echo "  • Press F1-F12 for development shortcuts"
     echo "  • Ctrl+Shift+M for manual context menu"
     echo "  • Ctrl+Alt+S for new session"
+    echo "  • Fabric dashboard launcher: $KITTY_CONFIG_DIR/scripts/fabric_dashboard.sh"
     echo
     echo -e "${CYAN}Configuration:${NC}"
     echo "  • Main config: $KITTY_CONFIG_DIR/kitty.conf"
     echo "  • Custom config: $KITTYVONCAN_DIR/custom.conf"
     echo "  • Scripts: $KITTY_CONFIG_DIR/scripts/"
+    echo "  • Fabric session template: $KITTYVONCAN_DIR/sessions/fabric_dashboard.session"
     echo
     echo -e "${CYAN}Next Steps:${NC}"
     echo "  • Restart kitty or press F5 to reload config"

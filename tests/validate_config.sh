@@ -256,11 +256,14 @@ test_directory_structure() {
     local required_dirs=(
         "$KITTY_CONFIG_DIR"
         "$KITTY_CONFIG_DIR/scripts"
+        "$KITTY_CONFIG_DIR/kittyvoncan/sessions"
     )
 
     local required_files=(
         "$KITTY_CONFIG_DIR/kitty.conf"
         "$KITTY_CONFIG_DIR/scripts/context_menu.sh"
+        "$KITTY_CONFIG_DIR/scripts/fabric_dashboard.sh"
+        "$KITTY_CONFIG_DIR/kittyvoncan/sessions/fabric_dashboard.session"
     )
 
     for dir in "${required_dirs[@]}"; do
@@ -278,6 +281,29 @@ test_directory_structure() {
             print_fail "File missing: $file"
         fi
     done
+}
+
+test_fabric_dashboard() {
+    print_test "Fabric dashboard assets"
+
+    local launcher="$KITTY_CONFIG_DIR/scripts/fabric_dashboard.sh"
+    local session="$KITTY_CONFIG_DIR/kittyvoncan/sessions/fabric_dashboard.session"
+
+    if [[ -f "$launcher" ]]; then
+        if [[ -x "$launcher" ]]; then
+            print_pass "Fabric dashboard launcher is executable"
+        else
+            print_fail "Fabric dashboard launcher is not executable"
+        fi
+    else
+        print_fail "Fabric dashboard launcher missing"
+    fi
+
+    if [[ -f "$session" ]]; then
+        print_pass "Fabric dashboard session template found"
+    else
+        print_fail "Fabric dashboard session template missing"
+    fi
 }
 
 # Test configuration backup
@@ -382,6 +408,7 @@ main() {
     test_mouse_mappings || true
     test_remote_control || true
     test_directory_structure || true
+    test_fabric_dashboard || true
     test_backup_system || true
     test_performance || true
 

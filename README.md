@@ -27,6 +27,7 @@ A comprehensive collection of quality-of-life improvements for the kitty termina
 - **F7**: Git status overlay
 - **F8**: New tab with current working directory
 - **F12**: Quick shell overlay
+- **Fabric dashboard**: Prebuilt accelerator cockpit via `fabric_dashboard.sh`
 
 ### 🔧 Professional Configuration
 - **Font optimization** with advanced rendering features
@@ -144,6 +145,16 @@ Edit `~/.config/kitty/kittyvoncan/custom.conf` to add your personal settings.
 # Test all features
 ./tests/test_features.sh
 ```
+
+### 🖥️ Fabric Dashboard (AI Fabric)
+
+Spin up a multi-tab accelerator cockpit with:
+
+```bash
+~/.config/kitty/scripts/fabric_dashboard.sh
+```
+
+Layout includes fabric status, GPU/NPU monitors, OpenVINO bench, logs/metrics, and a dev tab. Adjust commands via environment variables (e.g., `KITTY_FABRIC_WORKDIR`, `FABRICCTL_CMD`, `OPENVINO_BENCH_CMD`) or edit the session template at `~/.config/kitty/kittyvoncan/sessions/fabric_dashboard.session`. See `docs/fabric_dashboard.md` for overrides and keybinding examples.
 
 ## 🔄 Uninstallation
 
