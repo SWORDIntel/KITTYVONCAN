@@ -1,0 +1,63 @@
+# DSMIL SOC Router Service (Device 52 - Security Analytics)
+#
+# Fuses Layer 3/4 outputs + SHRINK metrics → SOC_EVENTS stream
+#
+# Install:
+#   sudo cp dsmil-soc-router.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now dsmil-soc-router
+
+[Unit]
+Description=DSMIL SOC Router - Device 52 (Security Analytics)
+Documentation=https://github.com/DSMIL/docs/comprehensive-plan/Phases/Phase2F.md
+After=network.target redis-server.service
+Wants=redis-server.service
+PartOf=dsmil.target
+
+[Service]
+Type=simple
+User=dsmil
+Group=dsmil
+WorkingDirectory=/opt/dsmil
+
+# Environment
+Environment="PYTHONUNBUFFERED=1"
+Environment="DSMIL_DEVICE_ID=52"
+Environment="DSMIL_LAYER=8"
+Environment="REDIS_HOST=localhost"
+Environment="REDIS_PORT=6379"
+Environment="SHRINK_URL=http://localhost:8500"
+Environment="LOG_LEVEL=INFO"
+
+# Use virtualenv if available
+ExecStart=/bin/bash -c '\
+    if [ -d "/opt/dsmil/.venv" ]; then \
+        source /opt/dsmil/.venv/bin/activate; \
+    fi; \
+    python3 /opt/dsmil/src/services/soc_router.py'
+
+# Restart policy
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# Resource limits
+MemoryMax=2G
+CPUQuota=50%
+
+# Security
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/mnt/dsmil-ram /var/log/dsmil
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=dsmil-soc-router
+
+[Install]
+WantedBy=multi-user.target dsmil.target
+
